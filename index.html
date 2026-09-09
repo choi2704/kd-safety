@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>안전교육 회의록</title>
+  <style>
+    :root{--navy:#163a5a;--blue:#1976d2;--light:#eef6ff;--line:#cfd8e3;--text:#1f2937}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Arial,"Noto Sans KR",sans-serif;color:var(--text);background:#f5f7fa}
+    header{background:var(--navy);color:#fff;padding:18px 24px}
+    header .wrap{max-width:1500px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:20px}
+    h1{margin:0;font-size:30px}.sub{opacity:.85;font-size:14px;margin-top:4px}
+    .app{max-width:1500px;margin:18px auto;display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:0 14px}
+    .panel{background:white;border:1px solid #dde3ea;border-radius:12px;overflow:hidden}
+    .panel-title{padding:12px 16px;background:#f3f6fa;font-weight:700;border-bottom:1px solid #d9e0e7}
+    .form{padding:14px}.section{border:1px solid #d8e8fb;border-radius:10px;margin-bottom:12px;overflow:hidden}
+    .section h3{margin:0;background:var(--light);padding:10px 12px;color:#0b65b7;font-size:18px}
+    .grid{display:grid;grid-template-columns:120px 1fr;gap:8px;padding:12px} label{font-weight:700}
+    input,textarea{width:100%;border:1px solid #cfd8e3;border-radius:6px;padding:9px;font-size:15px;background:#fff}
+    textarea{min-height:100px;resize:vertical}
+    .checks{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:12px}
+    .check{display:flex;gap:7px;align-items:center;font-weight:600}.check input{width:auto}
+    .attendee-row{display:grid;grid-template-columns:1fr 1.2fr 40px;gap:8px;margin-bottom:8px}
+    .btn{border:0;border-radius:7px;padding:10px 16px;font-size:15px;font-weight:700;cursor:pointer}
+    .btn-primary{background:#0b66c3;color:#fff}.btn-dark{background:#475569;color:#fff}.btn-light{background:#e8edf3;color:#25364a}
+    .toolbar{display:flex;gap:8px;flex-wrap:wrap;padding:12px;border-top:1px solid #e3e8ef}
+    .preview-wrap{padding:16px;background:#eef1f5;min-height:calc(100vh - 145px)}
+    #paper{width:210mm;min-height:297mm;margin:0 auto;background:#fff;color:#111;box-shadow:0 2px 12px rgba(0,0,0,.15);padding:14mm 13mm;font-family:"Malgun Gothic","Noto Sans KR",sans-serif}
+    #paper h2{text-align:center;font-size:28px;margin:0 0 12px}
+    .paper-table{width:100%;border-collapse:collapse;font-size:13px}.paper-table th,.paper-table td{border:1px solid #777;padding:7px;vertical-align:top}.paper-table th{background:#f1f1f1}
+    .paper-section-title{background:#e9e9e9;font-weight:700;padding:7px;border:1px solid #777;border-bottom:0;margin-top:10px}
+    .paper-box{border:1px solid #777;padding:10px;min-height:70px;white-space:pre-wrap;font-size:13px;line-height:1.6}
+    .sign-pad{border:1px dashed #9aa7b7;border-radius:6px;background:#fff;width:100%;height:85px;touch-action:none}
+    .small{font-size:12px;color:#64748b}.manager-box{width:52%;margin-left:auto;margin-top:18px;border:1px solid #777}
+    .manager-box .title{text-align:center;background:#eee;font-weight:700;padding:6px;border-bottom:1px solid #777}
+    .manager-grid{display:grid;grid-template-columns:70px 1fr 70px 1fr}.manager-grid div{padding:8px;border-right:1px solid #777}.manager-grid div:nth-child(4){border-right:0}
+    .center{text-align:center}.foot-note{margin-top:14px;text-align:center;font-weight:700}
+    .saved-list{max-height:160px;overflow:auto;padding:8px 12px}.saved-item{display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid #e4e8ed;padding:7px 0;font-size:14px}
+    @media(max-width:1100px){.app{grid-template-columns:1fr}#paper{width:100%;min-height:auto}}
+    @media print{
+      body{background:#fff}header,.form-panel,.preview-title,.toolbar{display:none!important}.app{display:block;margin:0;padding:0}.preview-panel{border:0}.preview-wrap{padding:0;background:#fff}
+      #paper{box-shadow:none;width:210mm;min-height:297mm;margin:0;padding:12mm}@page{size:A4;margin:0}
+    }
+  </style>
+</head>
+<body>
+<header><div class="wrap"><div><h1>안전교육 회의록</h1><div class="sub">매주 월요일 안전교육 기록 · A4 출력용</div></div><div>안전은 기록이 아니라 실천입니다.</div></div></header>
+<div class="app">
+<section class="panel form-panel">
+<div class="panel-title">회의록 입력</div>
+<div class="form">
+<div class="section"><h3>1. 기본 정보</h3><div class="grid">
+<label>교육일자</label><input type="date" id="date">
+<label>교육시간</label><div style="display:grid;grid-template-columns:1fr 20px 1fr;gap:6px;align-items:center"><input type="time" id="timeStart" value="09:00"><span class="center">~</span><input type="time" id="timeEnd" value="09:30"></div>
+<label>교육장소</label><input id="place" value="사무실 회의실">
+<label>교육대상</label><input id="target" value="전 직원">
+<label>참석인원</label><input type="number" id="count" min="0" value="0">
+</div></div>
+<div class="section"><h3>2. 교육 주제</h3><div class="checks" id="topicChecks">
+<label class="check"><input type="checkbox" value="작업 전 안전수칙" checked>작업 전 안전수칙</label>
+<label class="check"><input type="checkbox" value="기계·설비 안전">기계·설비 안전</label>
+<label class="check"><input type="checkbox" value="보호구 착용">보호구 착용</label>
+<label class="check"><input type="checkbox" value="화재·전기 안전">화재·전기 안전</label>
+<label class="check"><input type="checkbox" value="중량물 취급">중량물 취급</label>
+<label class="check"><input type="checkbox" value="지게차·차량 안전">지게차·차량 안전</label>
+<label class="check"><input type="checkbox" value="미끄럼·낙상 예방">미끄럼·낙상 예방</label>
+<label class="check"><input type="checkbox" value="사고사례 공유">사고사례 공유</label>
+<label class="check"><input type="checkbox" value="기타">기타</label>
+</div></div>
+<div class="section"><h3>3. 교육 내용</h3><div style="padding:12px"><textarea id="content">- 작업 전 주변 정리정돈 상태 확인
+- 개인 보호구(안전화, 장갑, 안전모) 착용 철저
+- 위험구역 출입 금지 및 작업 시 상호 확인
+- 사고사례 공유 및 질의응답</textarea></div></div>
+<div class="section"><h3>4. 금주 안전수칙 / 강조사항</h3><div style="padding:12px"><textarea id="emphasis">- 작업 전 3분 안전점검 생활화
+- 미끄럼, 낙상사고 예방을 위한 바닥 정리
+- 이상 징후 발견 시 즉시 관리자에게 보고</textarea></div></div>
+<div class="section"><h3>5. 특이사항 및 건의사항</h3><div style="padding:12px"><textarea id="memo">특이사항 없음.</textarea></div></div>
+<div class="section"><h3>6. 참석자 서명</h3><div style="padding:12px"><div id="attendees"></div><button class="btn btn-light" id="addAttendee">+ 참석자 추가</button><div class="small" style="margin-top:8px">서명은 마우스 또는 터치로 작성할 수 있습니다. 서명칸을 더블클릭하면 지울 수 있습니다.</div></div></div>
+<div class="section"><h3>7. 관리자 확인</h3><div class="grid"><label>관리자 성명</label><input id="managerName"><label>관리자 서명</label><canvas class="sign-pad" id="managerSign" width="500" height="120"></canvas></div></div>
+<div class="section"><h3>저장된 회의록</h3><div class="saved-list" id="savedList"></div></div>
+</div>
+<div class="toolbar"><button class="btn btn-primary" onclick="window.print()">A4 미리보기 / 인쇄</button><button class="btn btn-dark" id="saveBtn">회의록 저장</button><button class="btn btn-light" id="newBtn">새 회의록</button></div>
+</section>
+<section class="panel preview-panel">
+<div class="panel-title preview-title">A4 출력 미리보기</div>
+<div class="preview-wrap"><div id="paper">
+<h2>안전교육 회의록</h2>
+<table class="paper-table">
+<tr><th>교육일자</th><td id="pDate"></td><th>교육시간</th><td id="pTime"></td></tr>
+<tr><th>교육장소</th><td colspan="3" id="pPlace"></td></tr>
+<tr><th>교육대상</th><td id="pTarget"></td><th>참석인원</th><td id="pCount"></td></tr>
+<tr><th>교육주제</th><td colspan="3" id="pTopics"></td></tr>
+</table>
+<div class="paper-section-title">교육 내용</div><div class="paper-box" id="pContent"></div>
+<div class="paper-section-title">금주 안전수칙 / 강조사항</div><div class="paper-box" id="pEmphasis"></div>
+<div class="paper-section-title">특이사항 및 건의사항</div><div class="paper-box" id="pMemo"></div>
+<div class="paper-section-title">참석자 명단</div>
+<table class="paper-table" id="pAttendees"><tr><th style="width:8%">No.</th><th style="width:32%">이름</th><th>서명</th></tr></table>
+<div style="margin-top:14px;text-align:center;font-size:13px">위와 같이 안전교육을 실시하였으며 참석자는 교육내용을 확인하였습니다.</div>
+<div class="manager-box"><div class="title">관리자 확인</div><div class="manager-grid"><div>성명</div><div id="pManagerName"></div><div>서명</div><div><img id="pManagerSign" style="max-width:120px;max-height:45px"></div></div></div>
+<div class="foot-note">안전한 작업이 행복한 일터를 만듭니다.</div>
+</div></div>
+</section>
+</div>
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+function nextOrCurrentMonday(){const d=new Date(),day=d.getDay(),diff=day===1?0:(8-day)%7;d.setDate(d.getDate()+diff);return d.toISOString().slice(0,10)}
+function formatDate(v){if(!v)return'';const d=new Date(v+'T00:00:00'),yo=['일','월','화','수','목','금','토'][d.getDay()];return `${d.getFullYear()}년 ${String(d.getMonth()+1).padStart(2,'0')}월 ${String(d.getDate()).padStart(2,'0')}일 (${yo})`}
+$('#date').value=nextOrCurrentMonday();
+function setupCanvas(canvas){const ctx=canvas.getContext('2d');ctx.lineWidth=2;ctx.lineCap='round';ctx.strokeStyle='#111';let drawing=false;
+const pos=e=>{const r=canvas.getBoundingClientRect(),p=e.touches?e.touches[0]:e;return{x:(p.clientX-r.left)*(canvas.width/r.width),y:(p.clientY-r.top)*(canvas.height/r.height)}};
+const start=e=>{drawing=true;const p=pos(e);ctx.beginPath();ctx.moveTo(p.x,p.y);e.preventDefault()};const move=e=>{if(!drawing)return;const p=pos(e);ctx.lineTo(p.x,p.y);ctx.stroke();e.preventDefault();update()};const end=()=>{drawing=false;update()};
+canvas.addEventListener('mousedown',start);canvas.addEventListener('mousemove',move);window.addEventListener('mouseup',end);canvas.addEventListener('touchstart',start,{passive:false});canvas.addEventListener('touchmove',move,{passive:false});canvas.addEventListener('touchend',end);canvas.addEventListener('dblclick',()=>{ctx.clearRect(0,0,canvas.width,canvas.height);update()})}
+setupCanvas($('#managerSign'));
+function addAttendee(name='',signData=''){const wrap=document.createElement('div');wrap.className='attendee-row';wrap.innerHTML=`<input class="a-name" placeholder="이름"><canvas class="sign-pad a-sign" width="500" height="100"></canvas><button class="btn btn-light remove">×</button>`;wrap.querySelector('.a-name').value=name;$('#attendees').appendChild(wrap);const c=wrap.querySelector('.a-sign');setupCanvas(c);if(signData){const img=new Image();img.onload=()=>c.getContext('2d').drawImage(img,0,0,c.width,c.height);img.src=signData}wrap.querySelector('.remove').onclick=()=>{wrap.remove();update()};wrap.querySelector('.a-name').addEventListener('input',update);update()}
+for(let i=0;i<4;i++)addAttendee();$('#addAttendee').onclick=()=>addAttendee();
+function getTopics(){return $$('#topicChecks input:checked').map(x=>x.value).join(', ')}
+function update(){$('#pDate').textContent=formatDate($('#date').value);$('#pTime').textContent=`${$('#timeStart').value} ~ ${$('#timeEnd').value}`;$('#pPlace').textContent=$('#place').value;$('#pTarget').textContent=$('#target').value;$('#pCount').textContent=($('#count').value||'0')+'명';$('#pTopics').textContent=getTopics();$('#pContent').textContent=$('#content').value;$('#pEmphasis').textContent=$('#emphasis').value;$('#pMemo').textContent=$('#memo').value;$('#pManagerName').textContent=$('#managerName').value;$('#pManagerSign').src=$('#managerSign').toDataURL('image/png');
+const tbl=$('#pAttendees');tbl.innerHTML='<tr><th style="width:8%">No.</th><th style="width:32%">이름</th><th>서명</th></tr>';$$('.attendee-row').forEach((r,i)=>{const tr=document.createElement('tr'),canvas=r.querySelector('.a-sign');tr.innerHTML=`<td class="center">${i+1}</td><td>${r.querySelector('.a-name').value}</td><td class="center"><img src="${canvas.toDataURL('image/png')}" style="max-width:160px;max-height:45px"></td>`;tbl.appendChild(tr)})}
+['date','timeStart','timeEnd','place','target','count','content','emphasis','memo','managerName'].forEach(id=>$('#'+id).addEventListener('input',update));$$('#topicChecks input').forEach(x=>x.addEventListener('change',update));
+function data(){return{id:Date.now(),date:$('#date').value,timeStart:$('#timeStart').value,timeEnd:$('#timeEnd').value,place:$('#place').value,target:$('#target').value,count:$('#count').value,topics:$$('#topicChecks input').filter(x=>x.checked).map(x=>x.value),content:$('#content').value,emphasis:$('#emphasis').value,memo:$('#memo').value,managerName:$('#managerName').value,managerSign:$('#managerSign').toDataURL('image/png'),attendees:$$('.attendee-row').map(r=>({name:r.querySelector('.a-name').value,sign:r.querySelector('.a-sign').toDataURL('image/png')}))}}
+function saved(){return JSON.parse(localStorage.getItem('safetyMinutes')||'[]')}
+function renderSaved(){const box=$('#savedList');box.innerHTML='';const arr=saved().sort((a,b)=>b.date.localeCompare(a.date));if(!arr.length){box.innerHTML='<div class="small">저장된 회의록이 없습니다.</div>';return}arr.forEach(x=>{const d=document.createElement('div');d.className='saved-item';d.innerHTML=`<span>${x.date} · ${(x.topics||[]).join(', ')}</span><span><button class="btn btn-light load">불러오기</button> <button class="btn btn-light del">삭제</button></span>`;d.querySelector('.load').onclick=()=>loadData(x);d.querySelector('.del').onclick=()=>{localStorage.setItem('safetyMinutes',JSON.stringify(saved().filter(v=>v.id!==x.id)));renderSaved()};box.appendChild(d)})}
+$('#saveBtn').onclick=()=>{const arr=saved();arr.push(data());localStorage.setItem('safetyMinutes',JSON.stringify(arr));renderSaved();alert('회의록을 저장했습니다.')};
+function clearCanvas(c){c.getContext('2d').clearRect(0,0,c.width,c.height)}
+function loadCanvas(c,src){clearCanvas(c);if(!src)return;const img=new Image();img.onload=()=>{c.getContext('2d').drawImage(img,0,0,c.width,c.height);update()};img.src=src}
+function loadData(x){$('#date').value=x.date;$('#timeStart').value=x.timeStart;$('#timeEnd').value=x.timeEnd;$('#place').value=x.place;$('#target').value=x.target;$('#count').value=x.count;$$('#topicChecks input').forEach(i=>i.checked=(x.topics||[]).includes(i.value));$('#content').value=x.content;$('#emphasis').value=x.emphasis;$('#memo').value=x.memo;$('#managerName').value=x.managerName||'';loadCanvas($('#managerSign'),x.managerSign);$('#attendees').innerHTML='';(x.attendees||[]).forEach(a=>addAttendee(a.name,a.sign));update()}
+$('#newBtn').onclick=()=>{if(!confirm('새 회의록을 작성할까요?'))return;$('#date').value=nextOrCurrentMonday();$('#managerName').value='';clearCanvas($('#managerSign'));$('#attendees').innerHTML='';for(let i=0;i<4;i++)addAttendee();update()};
+renderSaved();update();
+</script>
+</body></html>
