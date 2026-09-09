@@ -28,7 +28,7 @@
     .preview-wrap{padding:16px;background:#eef1f5;min-height:calc(100vh - 145px)}
     #paper{width:210mm;min-height:297mm;margin:0 auto;background:#fff;color:#111;box-shadow:0 2px 12px rgba(0,0,0,.15);padding:14mm 13mm;font-family:"Malgun Gothic","Noto Sans KR",sans-serif}
     #paper h2{text-align:center;font-size:28px;margin:0 0 12px}
-    .paper-table{width:100%;border-collapse:collapse;font-size:13px}.paper-table th,.paper-table td{border:1px solid #777;padding:7px;vertical-align:top}.paper-table th{background:#f1f1f1}
+    .paper-table{width:100%;border-collapse:collapse;font-size:13px}.paper-table th,.paper-table td{border:1px solid #777;padding:6px;vertical-align:middle}.paper-table th{background:#f1f1f1}
     .paper-section-title{background:#e9e9e9;font-weight:700;padding:7px;border:1px solid #777;border-bottom:0;margin-top:10px}
     .paper-box{border:1px solid #777;padding:10px;min-height:70px;white-space:pre-wrap;font-size:13px;line-height:1.6}
     .sign-pad{border:1px dashed #9aa7b7;border-radius:6px;background:#fff;width:100%;height:85px;touch-action:none}
@@ -102,7 +102,12 @@
 <div class="paper-section-title">금주 안전수칙 / 강조사항</div><div class="paper-box" id="pEmphasis"></div>
 <div class="paper-section-title">특이사항 및 건의사항</div><div class="paper-box" id="pMemo"></div>
 <div class="paper-section-title">참석자 명단</div>
-<table class="paper-table" id="pAttendees"><tr><th style="width:8%">No.</th><th style="width:32%">이름</th><th>서명</th></tr></table>
+<table class="paper-table" id="pAttendees">
+<tr>
+  <th style="width:8%">No.</th><th style="width:17%">이름</th><th style="width:25%">서명</th>
+  <th style="width:8%">No.</th><th style="width:17%">이름</th><th style="width:25%">서명</th>
+</tr>
+</table>
 <div style="margin-top:14px;text-align:center;font-size:13px">위와 같이 안전교육을 실시하였으며 참석자는 교육내용을 확인하였습니다.</div>
 <div class="manager-box"><div class="title">관리자 확인</div><div class="manager-grid"><div>성명</div><div id="pManagerName"></div><div>서명</div><div><img id="pManagerSign" style="max-width:120px;max-height:45px"></div></div></div>
 <div class="foot-note">안전한 작업이 행복한 일터를 만듭니다.</div>
@@ -193,7 +198,27 @@ function addAttendee(name='',signData=''){const wrap=document.createElement('div
 for(let i=0;i<4;i++)addAttendee();$('#addAttendee').onclick=()=>addAttendee();
 function getTopics(){return $$('#topicChecks input:checked').map(x=>x.value).join(', ')}
 function update(){$('#pDate').textContent=formatDate($('#date').value);$('#pTime').textContent=`${$('#timeStart').value} ~ ${$('#timeEnd').value}`;$('#pPlace').textContent=$('#place').value;$('#pTarget').textContent=$('#target').value;$('#pCount').textContent=($('#count').value||'0')+'명';$('#pTopics').textContent=getTopics();$('#pContent').textContent=$('#content').value;$('#pEmphasis').textContent=$('#emphasis').value;$('#pMemo').textContent=$('#memo').value;$('#pManagerName').textContent=$('#managerName').value;$('#pManagerSign').src=$('#managerSign').toDataURL('image/png');
-const tbl=$('#pAttendees');tbl.innerHTML='<tr><th style="width:8%">No.</th><th style="width:32%">이름</th><th>서명</th></tr>';$$('.attendee-row').forEach((r,i)=>{const tr=document.createElement('tr'),canvas=r.querySelector('.a-sign');tr.innerHTML=`<td class="center">${i+1}</td><td>${r.querySelector('.a-name').value}</td><td class="center"><img src="${canvas.toDataURL('image/png')}" style="max-width:160px;max-height:45px"></td>`;tbl.appendChild(tr)})}
+const tbl=$('#pAttendees');
+tbl.innerHTML='<tr><th style="width:8%">No.</th><th style="width:17%">이름</th><th style="width:25%">서명</th><th style="width:8%">No.</th><th style="width:17%">이름</th><th style="width:25%">서명</th></tr>';
+const attendeeData=$$('.attendee-row').map((r,i)=>({
+  no:i+1,
+  name:r.querySelector('.a-name').value,
+  sign:r.querySelector('.a-sign').toDataURL('image/png')
+}));
+const half=Math.ceil(attendeeData.length/2);
+for(let i=0;i<half;i++){
+  const left=attendeeData[i]||{no:'',name:'',sign:''};
+  const right=attendeeData[i+half]||{no:'',name:'',sign:''};
+  const tr=document.createElement('tr');
+  tr.innerHTML=`
+    <td class="center">${left.no}</td>
+    <td>${left.name}</td>
+    <td class="center">${left.sign?`<img src="${left.sign}" style="max-width:120px;max-height:38px">`:''}</td>
+    <td class="center">${right.no}</td>
+    <td>${right.name}</td>
+    <td class="center">${right.sign?`<img src="${right.sign}" style="max-width:120px;max-height:38px">`:''}</td>`;
+  tbl.appendChild(tr);
+}}
 
 ['timeStart','timeEnd','place','target','count','memo','managerName'].forEach(id=>$('#'+id).addEventListener('input',update));
 $('#content').addEventListener('input',()=>{$('#content').dataset.edited='1';update();});
