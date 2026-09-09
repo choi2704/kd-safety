@@ -67,7 +67,12 @@
 <label class="check"><input type="checkbox" value="미끄럼·낙상 예방">미끄럼·낙상 예방</label>
 <label class="check"><input type="checkbox" value="사고사례 공유">사고사례 공유</label>
 <label class="check"><input type="checkbox" value="기타">기타</label>
-</div></div>
+</div>
+<div style="padding:0 12px 12px;display:flex;justify-content:space-between;gap:8px;align-items:center">
+  <span class="small">교육일자를 바꾸면 해당 주차의 안전교육 주제와 내용이 자동으로 변경됩니다.</span>
+  <button type="button" class="btn btn-light" onclick="applyWeeklySafetyPlan(true)">이번 주 교육내용 불러오기</button>
+</div>
+</div>
 <div class="section"><h3>3. 교육 내용</h3><div style="padding:12px"><textarea id="content">- 작업 전 주변 정리정돈 상태 확인
 - 개인 보호구(안전화, 장갑, 안전모) 착용 철저
 - 위험구역 출입 금지 및 작업 시 상호 확인
@@ -105,9 +110,79 @@
 </div>
 <script>
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+
+const weeklySafetyPlans = [
+  {
+    topics:["작업 전 안전수칙","보호구 착용"],
+    content:"- 작업 시작 전 작업장 주변 정리정돈 상태 확인\n- 안전화, 장갑, 안전모 등 개인 보호구 착용 상태 확인\n- 작업 전 설비 이상 유무 및 비상정지장치 확인\n- 작업자 간 오늘 작업내용과 위험요소 공유",
+    emphasis:"- 작업 전 3분 안전점검 실시\n- 보호구 미착용 상태로 작업 금지\n- 이상 발견 시 작업을 멈추고 관리자에게 즉시 보고"
+  },
+  {
+    topics:["지게차·차량 안전","작업 전 안전수칙"],
+    content:"- 지게차 및 화물차 이동동선과 보행자 동선 분리 확인\n- 후진 및 사각지대 이동 시 주변 확인과 신호 실시\n- 적재물 고정 상태 및 과적 여부 확인\n- 차량 상하차 시 주변 작업자 접근 금지",
+    emphasis:"- 지게차 주변 2m 이내 불필요한 접근 금지\n- 화물 상하차 전 차량 완전 정차 확인\n- 운전자와 작업자 간 수신호를 명확히 하기"
+  },
+  {
+    topics:["기계·설비 안전","보호구 착용"],
+    content:"- 절단기, 프레스, 레이저 등 설비 사용 전 점검 실시\n- 회전체 및 절단부 주변 손 접근 금지\n- 설비 청소·정비 시 전원 차단 후 작업\n- 장갑, 보안경 등 작업별 보호구 착용 확인",
+    emphasis:"- 안전커버 및 방호장치 임의 해제 금지\n- 이상소음·진동 발생 시 즉시 작업 중지\n- 정비 중에는 전원차단 표시 유지"
+  },
+  {
+    topics:["중량물 취급","지게차·차량 안전"],
+    content:"- 중량물 이동 전 무게와 중심 확인\n- 2인 이상 협업이 필요한 작업은 단독작업 금지\n- 인양·이동 중 적재물 아래 출입 금지\n- 운반구 및 지게차 포크 위치 확인",
+    emphasis:"- 무리한 수작업 운반 금지\n- 허리보다 낮은 자세에서 비틀어 들지 않기\n- 중량물 주변 보행자 통제"
+  },
+  {
+    topics:["화재·전기 안전","기계·설비 안전"],
+    content:"- 분전반 및 전선 피복 손상 여부 확인\n- 용접·절단 작업 주변 인화물 제거\n- 소화기 위치 및 사용 가능 상태 확인\n- 멀티탭 과부하 및 임시배선 사용 여부 점검",
+    emphasis:"- 화기작업 전 주변 가연물 제거\n- 전기설비 이상 발견 시 임의수리 금지\n- 소화기 앞 적치물 금지"
+  },
+  {
+    topics:["미끄럼·낙상 예방","작업 전 안전수칙"],
+    content:"- 통로 바닥의 물기, 기름, 자재 등 장애물 제거\n- 사다리 및 작업발판 사용 전 상태 확인\n- 높은 곳 작업 시 추락방지 조치 확인\n- 계단과 출입구 주변 적치 금지",
+    emphasis:"- 바닥 오염 즉시 제거\n- 사다리 임시변형 사용 금지\n- 고소작업 시 안전대 착용 확인"
+  },
+  {
+    topics:["사고사례 공유","작업 전 안전수칙"],
+    content:"- 최근 작업 중 발생하거나 발생할 뻔한 위험사례 공유\n- 사고 원인과 재발방지 방법 함께 확인\n- 작업자별 위험요소 의견 청취\n- 동일 유형 사고가 발생하지 않도록 작업방법 재확인",
+    emphasis:"- 아차사고도 반드시 공유하기\n- 위험요소 발견 시 즉시 개선 또는 관리자 보고\n- 작업속도보다 안전을 우선하기"
+  },
+  {
+    topics:["화재·전기 안전","사고사례 공유"],
+    content:"- 비상상황 발생 시 작업중지 및 대피절차 확인\n- 비상구와 소화기 위치 재확인\n- 부상자 발생 시 관리자 보고와 응급조치 순서 교육\n- 119 신고 시 전달해야 할 내용 확인",
+    emphasis:"- 비상구 주변 적치 금지\n- 사고 발생 시 현장 보존 및 즉시 보고\n- 응급상황에서는 무리한 이동보다 안전 확보 우선"
+  }
+];
+
+function getSafetyWeekIndex(dateValue){
+  if(!dateValue) return 0;
+  const d = new Date(dateValue + "T00:00:00");
+  const start = new Date(d.getFullYear(), 0, 1);
+  const days = Math.floor((d - start) / 86400000);
+  return Math.floor((days + start.getDay()) / 7) % weeklySafetyPlans.length;
+}
+
+function applyWeeklySafetyPlan(force=false){
+  const plan = weeklySafetyPlans[getSafetyWeekIndex($('#date').value)];
+  if(!plan) return;
+
+  $$('#topicChecks input').forEach(i=>{
+    i.checked = plan.topics.includes(i.value);
+  });
+
+  if(force || !$('#content').dataset.edited){
+    $('#content').value = plan.content;
+  }
+  if(force || !$('#emphasis').dataset.edited){
+    $('#emphasis').value = plan.emphasis;
+  }
+  update();
+}
+
 function nextOrCurrentMonday(){const d=new Date(),day=d.getDay(),diff=day===1?0:(8-day)%7;d.setDate(d.getDate()+diff);return d.toISOString().slice(0,10)}
 function formatDate(v){if(!v)return'';const d=new Date(v+'T00:00:00'),yo=['일','월','화','수','목','금','토'][d.getDay()];return `${d.getFullYear()}년 ${String(d.getMonth()+1).padStart(2,'0')}월 ${String(d.getDate()).padStart(2,'0')}일 (${yo})`}
 $('#date').value=nextOrCurrentMonday();
+applyWeeklySafetyPlan(true);
 function setupCanvas(canvas){const ctx=canvas.getContext('2d');ctx.lineWidth=2;ctx.lineCap='round';ctx.strokeStyle='#111';let drawing=false;
 const pos=e=>{const r=canvas.getBoundingClientRect(),p=e.touches?e.touches[0]:e;return{x:(p.clientX-r.left)*(canvas.width/r.width),y:(p.clientY-r.top)*(canvas.height/r.height)}};
 const start=e=>{drawing=true;const p=pos(e);ctx.beginPath();ctx.moveTo(p.x,p.y);e.preventDefault()};const move=e=>{if(!drawing)return;const p=pos(e);ctx.lineTo(p.x,p.y);ctx.stroke();e.preventDefault();update()};const end=()=>{drawing=false;update()};
@@ -118,7 +193,17 @@ for(let i=0;i<4;i++)addAttendee();$('#addAttendee').onclick=()=>addAttendee();
 function getTopics(){return $$('#topicChecks input:checked').map(x=>x.value).join(', ')}
 function update(){$('#pDate').textContent=formatDate($('#date').value);$('#pTime').textContent=`${$('#timeStart').value} ~ ${$('#timeEnd').value}`;$('#pPlace').textContent=$('#place').value;$('#pTarget').textContent=$('#target').value;$('#pCount').textContent=($('#count').value||'0')+'명';$('#pTopics').textContent=getTopics();$('#pContent').textContent=$('#content').value;$('#pEmphasis').textContent=$('#emphasis').value;$('#pMemo').textContent=$('#memo').value;$('#pManagerName').textContent=$('#managerName').value;$('#pManagerSign').src=$('#managerSign').toDataURL('image/png');
 const tbl=$('#pAttendees');tbl.innerHTML='<tr><th style="width:8%">No.</th><th style="width:32%">이름</th><th>서명</th></tr>';$$('.attendee-row').forEach((r,i)=>{const tr=document.createElement('tr'),canvas=r.querySelector('.a-sign');tr.innerHTML=`<td class="center">${i+1}</td><td>${r.querySelector('.a-name').value}</td><td class="center"><img src="${canvas.toDataURL('image/png')}" style="max-width:160px;max-height:45px"></td>`;tbl.appendChild(tr)})}
-['date','timeStart','timeEnd','place','target','count','content','emphasis','memo','managerName'].forEach(id=>$('#'+id).addEventListener('input',update));$$('#topicChecks input').forEach(x=>x.addEventListener('change',update));
+
+['timeStart','timeEnd','place','target','count','memo','managerName'].forEach(id=>$('#'+id).addEventListener('input',update));
+$('#content').addEventListener('input',()=>{$('#content').dataset.edited='1';update();});
+$('#emphasis').addEventListener('input',()=>{$('#emphasis').dataset.edited='1';update();});
+$('#date').addEventListener('change',()=>{
+  $('#content').dataset.edited='';
+  $('#emphasis').dataset.edited='';
+  applyWeeklySafetyPlan(true);
+});
+$$('#topicChecks input').forEach(x=>x.addEventListener('change',update));
+
 function data(){return{id:Date.now(),date:$('#date').value,timeStart:$('#timeStart').value,timeEnd:$('#timeEnd').value,place:$('#place').value,target:$('#target').value,count:$('#count').value,topics:$$('#topicChecks input').filter(x=>x.checked).map(x=>x.value),content:$('#content').value,emphasis:$('#emphasis').value,memo:$('#memo').value,managerName:$('#managerName').value,managerSign:$('#managerSign').toDataURL('image/png'),attendees:$$('.attendee-row').map(r=>({name:r.querySelector('.a-name').value,sign:r.querySelector('.a-sign').toDataURL('image/png')}))}}
 function saved(){return JSON.parse(localStorage.getItem('safetyMinutes')||'[]')}
 function renderSaved(){const box=$('#savedList');box.innerHTML='';const arr=saved().sort((a,b)=>b.date.localeCompare(a.date));if(!arr.length){box.innerHTML='<div class="small">저장된 회의록이 없습니다.</div>';return}arr.forEach(x=>{const d=document.createElement('div');d.className='saved-item';d.innerHTML=`<span>${x.date} · ${(x.topics||[]).join(', ')}</span><span><button class="btn btn-light load">불러오기</button> <button class="btn btn-light del">삭제</button></span>`;d.querySelector('.load').onclick=()=>loadData(x);d.querySelector('.del').onclick=()=>{localStorage.setItem('safetyMinutes',JSON.stringify(saved().filter(v=>v.id!==x.id)));renderSaved()};box.appendChild(d)})}
@@ -126,7 +211,8 @@ $('#saveBtn').onclick=()=>{const arr=saved();arr.push(data());localStorage.setIt
 function clearCanvas(c){c.getContext('2d').clearRect(0,0,c.width,c.height)}
 function loadCanvas(c,src){clearCanvas(c);if(!src)return;const img=new Image();img.onload=()=>{c.getContext('2d').drawImage(img,0,0,c.width,c.height);update()};img.src=src}
 function loadData(x){$('#date').value=x.date;$('#timeStart').value=x.timeStart;$('#timeEnd').value=x.timeEnd;$('#place').value=x.place;$('#target').value=x.target;$('#count').value=x.count;$$('#topicChecks input').forEach(i=>i.checked=(x.topics||[]).includes(i.value));$('#content').value=x.content;$('#emphasis').value=x.emphasis;$('#memo').value=x.memo;$('#managerName').value=x.managerName||'';loadCanvas($('#managerSign'),x.managerSign);$('#attendees').innerHTML='';(x.attendees||[]).forEach(a=>addAttendee(a.name,a.sign));update()}
-$('#newBtn').onclick=()=>{if(!confirm('새 회의록을 작성할까요?'))return;$('#date').value=nextOrCurrentMonday();$('#managerName').value='';clearCanvas($('#managerSign'));$('#attendees').innerHTML='';for(let i=0;i<4;i++)addAttendee();update()};
+$('#newBtn').onclick=()=>{if(!confirm('새 회의록을 작성할까요?'))return;$('#date').value=nextOrCurrentMonday();
+applyWeeklySafetyPlan(true);$('#managerName').value='';clearCanvas($('#managerSign'));$('#attendees').innerHTML='';for(let i=0;i<4;i++)addAttendee();update()};
 renderSaved();update();
 </script>
 </body></html>
