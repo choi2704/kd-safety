@@ -37,6 +37,26 @@
     .manager-grid{display:grid;grid-template-columns:70px 1fr 70px 1fr}.manager-grid div{padding:8px;border-right:1px solid #777}.manager-grid div:nth-child(4){border-right:0}
     .center{text-align:center}.foot-note{margin-top:14px;text-align:center;font-weight:700}
     .saved-list{max-height:160px;overflow:auto;padding:8px 12px}.saved-item{display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid #e4e8ed;padding:7px 0;font-size:14px}
+
+    .calendar-head{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid #e4e8ed}
+    .calendar-head strong{font-size:18px}
+    .calendar-nav{display:flex;gap:6px}
+    .calendar-nav button{border:1px solid #cfd8e3;background:#fff;border-radius:6px;padding:6px 10px;font-weight:700;cursor:pointer}
+    .calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);padding:8px;gap:4px}
+    .cal-dow{text-align:center;font-size:12px;font-weight:700;color:#64748b;padding:5px 0}
+    .cal-day{min-height:64px;border:1px solid #e4e8ed;border-radius:7px;background:#fff;padding:5px;cursor:pointer;position:relative;text-align:left}
+    .cal-day:hover{border-color:#79aee3;background:#f7fbff}
+    .cal-day.muted{opacity:.35}
+    .cal-day.today{outline:2px solid #78aee5}
+    .cal-day.has-record{background:#eef7ff;border-color:#9bc7ee}
+    .cal-num{font-weight:700;font-size:13px}
+    .cal-record{display:block;margin-top:4px;font-size:10px;line-height:1.25;color:#0b65b7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .cal-badge{position:absolute;right:4px;top:4px;background:#0b66c3;color:#fff;border-radius:10px;font-size:10px;padding:1px 5px}
+    .archive-detail{margin:0 12px 12px;padding:10px;border:1px solid #d7e4f2;border-radius:8px;background:#f8fbff;display:none}
+    .archive-detail.show{display:block}
+    .archive-title{font-weight:800;margin-bottom:6px}
+    .archive-actions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+
     @media(max-width:1100px){.app{grid-template-columns:1fr}#paper{width:100%;min-height:auto}}
     @media print{
       body{background:#fff}header,.form-panel,.preview-title,.toolbar{display:none!important}.app{display:block;margin:0;padding:0}.preview-panel{border:0}.preview-wrap{padding:0;background:#fff}
@@ -83,7 +103,20 @@
 <div class="section"><h3>5. 특이사항 및 건의사항</h3><div style="padding:12px"><textarea id="memo">특이사항 없음.</textarea></div></div>
 <div class="section"><h3>6. 참석자 서명</h3><div style="padding:12px"><div id="attendees"></div><button class="btn btn-light" id="addAttendee">+ 참석자 추가</button><div class="small" style="margin-top:8px">서명은 마우스 또는 터치로 작성할 수 있습니다. 서명칸을 더블클릭하면 지울 수 있습니다.</div></div></div>
 <div class="section"><h3>7. 관리자 확인</h3><div class="grid"><label>관리자 성명</label><input id="managerName"><label>관리자 서명</label><canvas class="sign-pad" id="managerSign" width="500" height="120"></canvas></div></div>
-<div class="section"><h3>저장된 회의록</h3><div class="saved-list" id="savedList"></div></div>
+<div class="section">
+<h3>8. 회의록 보관함 (달력)</h3>
+<div class="calendar-head">
+  <div class="calendar-nav">
+    <button type="button" id="calPrev">‹ 이전</button>
+    <button type="button" id="calToday">오늘</button>
+    <button type="button" id="calNext">다음 ›</button>
+  </div>
+  <strong id="calTitle"></strong>
+</div>
+<div class="calendar-grid" id="calendar"></div>
+<div class="archive-detail" id="archiveDetail"></div>
+<div class="saved-list" id="savedList"></div>
+</div>
 </div>
 <div class="toolbar"><button class="btn btn-primary" onclick="window.print()">A4 미리보기 / 인쇄</button><button class="btn btn-dark" id="saveBtn">회의록 저장</button><button class="btn btn-light" id="newBtn">새 회의록</button></div>
 </section>
@@ -194,8 +227,32 @@ const pos=e=>{const r=canvas.getBoundingClientRect(),p=e.touches?e.touches[0]:e;
 const start=e=>{drawing=true;const p=pos(e);ctx.beginPath();ctx.moveTo(p.x,p.y);e.preventDefault()};const move=e=>{if(!drawing)return;const p=pos(e);ctx.lineTo(p.x,p.y);ctx.stroke();e.preventDefault();update()};const end=()=>{drawing=false;update()};
 canvas.addEventListener('mousedown',start);canvas.addEventListener('mousemove',move);window.addEventListener('mouseup',end);canvas.addEventListener('touchstart',start,{passive:false});canvas.addEventListener('touchmove',move,{passive:false});canvas.addEventListener('touchend',end);canvas.addEventListener('dblclick',()=>{ctx.clearRect(0,0,canvas.width,canvas.height);update()})}
 setupCanvas($('#managerSign'));
-function addAttendee(name='',signData=''){const wrap=document.createElement('div');wrap.className='attendee-row';wrap.innerHTML=`<input class="a-name" placeholder="이름"><canvas class="sign-pad a-sign" width="500" height="100"></canvas><button class="btn btn-light remove">×</button>`;wrap.querySelector('.a-name').value=name;$('#attendees').appendChild(wrap);const c=wrap.querySelector('.a-sign');setupCanvas(c);if(signData){const img=new Image();img.onload=()=>c.getContext('2d').drawImage(img,0,0,c.width,c.height);img.src=signData}wrap.querySelector('.remove').onclick=()=>{wrap.remove();update()};wrap.querySelector('.a-name').addEventListener('input',update);update()}
-for(let i=0;i<4;i++)addAttendee();$('#addAttendee').onclick=()=>addAttendee();
+
+const defaultEmployees = [
+  "신종국 부장",
+  "이창신 부장",
+  "이창호 부장",
+  "최대영 부장",
+  "김황용 부장",
+  "박영수 부장",
+  "이승섭 부장",
+  "윤영식 과장",
+  "홍종택 과장",
+  "문희민 과장",
+  "한대희 과장",
+  "마점주 기사",
+  "빌알 기사"
+];
+
+function loadDefaultEmployees(){
+  $('#attendees').innerHTML='';
+  defaultEmployees.forEach(name=>addAttendee(name));
+  $('#count').value = defaultEmployees.length;
+  update();
+}
+
+function addAttendee(name='',signData=''){const wrap=document.createElement('div');wrap.className='attendee-row';wrap.innerHTML=`<input class="a-name" placeholder="이름 / 직함"><canvas class="sign-pad a-sign" width="500" height="100"></canvas><button class="btn btn-light remove">×</button>`;wrap.querySelector('.a-name').value=name;$('#attendees').appendChild(wrap);const c=wrap.querySelector('.a-sign');setupCanvas(c);if(signData){const img=new Image();img.onload=()=>c.getContext('2d').drawImage(img,0,0,c.width,c.height);img.src=signData}wrap.querySelector('.remove').onclick=()=>{wrap.remove();$('#count').value=$$('.attendee-row').length;update()};wrap.querySelector('.a-name').addEventListener('input',update);update()}
+loadDefaultEmployees();$('#addAttendee').onclick=()=>{addAttendee();$('#count').value=$$('.attendee-row').length;update();};
 function getTopics(){return $$('#topicChecks input:checked').map(x=>x.value).join(', ')}
 function update(){$('#pDate').textContent=formatDate($('#date').value);$('#pTime').textContent=`${$('#timeStart').value} ~ ${$('#timeEnd').value}`;$('#pPlace').textContent=$('#place').value;$('#pTarget').textContent=$('#target').value;$('#pCount').textContent=($('#count').value||'0')+'명';$('#pTopics').textContent=getTopics();$('#pContent').textContent=$('#content').value;$('#pEmphasis').textContent=$('#emphasis').value;$('#pMemo').textContent=$('#memo').value;$('#pManagerName').textContent=$('#managerName').value;$('#pManagerSign').src=$('#managerSign').toDataURL('image/png');
 const tbl=$('#pAttendees');
@@ -232,13 +289,123 @@ $$('#topicChecks input').forEach(x=>x.addEventListener('change',update));
 
 function data(){return{id:Date.now(),date:$('#date').value,timeStart:$('#timeStart').value,timeEnd:$('#timeEnd').value,place:$('#place').value,target:$('#target').value,count:$('#count').value,topics:$$('#topicChecks input').filter(x=>x.checked).map(x=>x.value),content:$('#content').value,emphasis:$('#emphasis').value,memo:$('#memo').value,managerName:$('#managerName').value,managerSign:$('#managerSign').toDataURL('image/png'),attendees:$$('.attendee-row').map(r=>({name:r.querySelector('.a-name').value,sign:r.querySelector('.a-sign').toDataURL('image/png')}))}}
 function saved(){return JSON.parse(localStorage.getItem('safetyMinutes')||'[]')}
-function renderSaved(){const box=$('#savedList');box.innerHTML='';const arr=saved().sort((a,b)=>b.date.localeCompare(a.date));if(!arr.length){box.innerHTML='<div class="small">저장된 회의록이 없습니다.</div>';return}arr.forEach(x=>{const d=document.createElement('div');d.className='saved-item';d.innerHTML=`<span>${x.date} · ${(x.topics||[]).join(', ')}</span><span><button class="btn btn-light load">불러오기</button> <button class="btn btn-light del">삭제</button></span>`;d.querySelector('.load').onclick=()=>loadData(x);d.querySelector('.del').onclick=()=>{localStorage.setItem('safetyMinutes',JSON.stringify(saved().filter(v=>v.id!==x.id)));renderSaved()};box.appendChild(d)})}
-$('#saveBtn').onclick=()=>{const arr=saved();arr.push(data());localStorage.setItem('safetyMinutes',JSON.stringify(arr));renderSaved();alert('회의록을 저장했습니다.')};
+function renderSaved(){const box=$('#savedList');box.innerHTML='';const arr=saved().sort((a,b)=>b.date.localeCompare(a.date));if(!arr.length){box.innerHTML='<div class="small">저장된 회의록이 없습니다.</div>';return}arr.forEach(x=>{const d=document.createElement('div');d.className='saved-item';d.innerHTML=`<span>${x.date} · ${(x.topics||[]).join(', ')}</span><span><button class="btn btn-light load">불러오기</button> <button class="btn btn-light del">삭제</button></span>`;d.querySelector('.load').onclick=()=>loadData(x);d.querySelector('.del').onclick=()=>{localStorage.setItem('safetyMinutes',JSON.stringify(saved().filter(v=>v.id!==x.id)));renderSaved();renderCalendar()};box.appendChild(d)})}
+$('#saveBtn').onclick=()=>{
+  const record=data();
+  const arr=saved();
+  const same=arr.findIndex(x=>x.date===record.date);
+  if(same>=0){
+    if(confirm(record.date+' 회의록이 이미 저장되어 있습니다.\n기존 내용을 이 내용으로 덮어쓸까요?')){
+      record.id=arr[same].id;
+      arr[same]=record;
+    }else{return;}
+  }else{
+    arr.push(record);
+  }
+  localStorage.setItem('safetyMinutes',JSON.stringify(arr));
+  renderSaved();renderCalendar();
+  alert('회의록을 저장했습니다.');
+};
+
+let calendarCursor = new Date();
+calendarCursor.setDate(1);
+
+function ymdLocal(d){
+  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+
+function renderCalendar(){
+  const cal=$('#calendar');
+  if(!cal) return;
+  cal.innerHTML='';
+  $('#calTitle').textContent=`${calendarCursor.getFullYear()}년 ${calendarCursor.getMonth()+1}월`;
+  ['일','월','화','수','목','금','토'].forEach(x=>{
+    const d=document.createElement('div'); d.className='cal-dow'; d.textContent=x; cal.appendChild(d);
+  });
+
+  const y=calendarCursor.getFullYear(), m=calendarCursor.getMonth();
+  const first=new Date(y,m,1), start=new Date(y,m,1-first.getDay());
+  const records=saved();
+  const today=ymdLocal(new Date());
+
+  for(let i=0;i<42;i++){
+    const d=new Date(start); d.setDate(start.getDate()+i);
+    const key=ymdLocal(d);
+    const dayRecords=records.filter(r=>r.date===key);
+    const cell=document.createElement('button');
+    cell.type='button';
+    cell.className='cal-day';
+    if(d.getMonth()!==m) cell.classList.add('muted');
+    if(key===today) cell.classList.add('today');
+    if(dayRecords.length) cell.classList.add('has-record');
+
+    cell.innerHTML=`<span class="cal-num">${d.getDate()}</span>` +
+      (dayRecords.length?`<span class="cal-badge">${dayRecords.length}</span><span class="cal-record">${(dayRecords[0].topics||[]).slice(0,2).join(' · ')||'안전교육'}</span>`:'');
+
+    cell.onclick=()=>showArchiveDate(key,dayRecords);
+    cal.appendChild(cell);
+  }
+}
+
+function showArchiveDate(dateKey, records){
+  const box=$('#archiveDetail');
+  if(!records.length){
+    box.className='archive-detail show';
+    box.innerHTML=`<div class="archive-title">${formatDate(dateKey)}</div>
+      <div class="small">저장된 회의록이 없습니다.</div>
+      <div class="archive-actions"><button class="btn btn-primary" type="button" id="makeThisDate">이 날짜로 새 회의록</button></div>`;
+    $('#makeThisDate').onclick=()=>{
+      $('#date').value=dateKey;
+      $('#content').dataset.edited='';
+      $('#emphasis').dataset.edited='';
+      applyWeeklySafetyPlan(true);
+      loadDefaultEmployees();
+      window.scrollTo({top:0,behavior:'smooth'});
+    };
+    return;
+  }
+
+  box.className='archive-detail show';
+  box.innerHTML=`<div class="archive-title">${formatDate(dateKey)} · 저장된 회의록</div>
+    ${records.map((r,i)=>`<div style="padding:6px 0;border-top:${i?'1px solid #e4e8ed':'0'}">
+      <b>${(r.topics||[]).join(', ')||'안전교육'}</b>
+      <div class="small">${r.place||''} · 참석 ${r.count||0}명</div>
+      <div class="archive-actions">
+        <button class="btn btn-primary archive-open" data-id="${r.id}" type="button">내용 보기</button>
+        <button class="btn btn-light archive-print" data-id="${r.id}" type="button">불러와서 인쇄</button>
+      </div>
+    </div>`).join('')}`;
+
+  $$('.archive-open').forEach(b=>b.onclick=()=>{
+    const r=saved().find(x=>String(x.id)===b.dataset.id);
+    if(r){loadData(r);window.scrollTo({top:0,behavior:'smooth'});}
+  });
+  $$('.archive-print').forEach(b=>b.onclick=()=>{
+    const r=saved().find(x=>String(x.id)===b.dataset.id);
+    if(r){loadData(r);setTimeout(()=>window.print(),200);}
+  });
+}
+
+$('#calPrev').onclick=()=>{calendarCursor.setMonth(calendarCursor.getMonth()-1);renderCalendar();};
+$('#calNext').onclick=()=>{calendarCursor.setMonth(calendarCursor.getMonth()+1);renderCalendar();};
+$('#calToday').onclick=()=>{calendarCursor=new Date();calendarCursor.setDate(1);renderCalendar();};
+
+
 function clearCanvas(c){c.getContext('2d').clearRect(0,0,c.width,c.height)}
 function loadCanvas(c,src){clearCanvas(c);if(!src)return;const img=new Image();img.onload=()=>{c.getContext('2d').drawImage(img,0,0,c.width,c.height);update()};img.src=src}
-function loadData(x){$('#date').value=x.date;$('#timeStart').value=x.timeStart;$('#timeEnd').value=x.timeEnd;$('#place').value=x.place;$('#target').value=x.target;$('#count').value=x.count;$$('#topicChecks input').forEach(i=>i.checked=(x.topics||[]).includes(i.value));$('#content').value=x.content;$('#emphasis').value=x.emphasis;$('#memo').value=x.memo;$('#managerName').value=x.managerName||'';loadCanvas($('#managerSign'),x.managerSign);$('#attendees').innerHTML='';(x.attendees||[]).forEach(a=>addAttendee(a.name,a.sign));update()}
-$('#newBtn').onclick=()=>{if(!confirm('새 회의록을 작성할까요?'))return;$('#date').value=nextOrCurrentMonday();
-applyWeeklySafetyPlan(true);$('#managerName').value='';clearCanvas($('#managerSign'));$('#attendees').innerHTML='';for(let i=0;i<4;i++)addAttendee();update()};
-renderSaved();update();
+function loadData(x){$('#date').value=x.date;calendarCursor=new Date(x.date+'T00:00:00');calendarCursor.setDate(1);renderCalendar();$('#timeStart').value=x.timeStart;$('#timeEnd').value=x.timeEnd;$('#place').value=x.place;$('#target').value=x.target;$('#count').value=x.count;$$('#topicChecks input').forEach(i=>i.checked=(x.topics||[]).includes(i.value));$('#content').value=x.content;$('#emphasis').value=x.emphasis;$('#memo').value=x.memo;$('#managerName').value=x.managerName||'';loadCanvas($('#managerSign'),x.managerSign);$('#attendees').innerHTML='';(x.attendees||[]).forEach(a=>addAttendee(a.name,a.sign));update()}
+$('#newBtn').onclick=()=>{
+  if(!confirm('새 회의록을 작성할까요?'))return;
+  $('#date').value=nextOrCurrentMonday();
+  applyWeeklySafetyPlan(true);
+  $('#managerName').value='';
+  clearCanvas($('#managerSign'));
+  loadDefaultEmployees();
+  renderSaved();
+  renderCalendar();
+  update();
+};
+renderSaved();renderCalendar();update();
 </script>
 </body></html>
