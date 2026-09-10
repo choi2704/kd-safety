@@ -29,13 +29,20 @@
     #paper{width:210mm;min-height:297mm;margin:0 auto;background:#fff;color:#111;box-shadow:0 2px 12px rgba(0,0,0,.15);padding:14mm 13mm;font-family:"Malgun Gothic","Noto Sans KR",sans-serif}
     #paper h2{text-align:center;font-size:28px;margin:0 0 12px}
     .paper-table{width:100%;border-collapse:collapse;font-size:13px}.paper-table th,.paper-table td{border:1px solid #777;padding:6px;vertical-align:middle}.paper-table th{background:#f1f1f1}
-    .paper-section-title{background:#e9e9e9;font-weight:700;padding:7px;border:1px solid #777;border-bottom:0;margin-top:10px}
-    .paper-box{border:1px solid #777;padding:10px;min-height:70px;white-space:pre-wrap;font-size:13px;line-height:1.6}
+    .paper-section-title{background:#e9e9e9;font-weight:700;padding:5px;border:1px solid #777;border-bottom:0;margin-top:10px}
+    .paper-box{border:1px solid #777;padding:7px;min-height:55px;white-space:pre-wrap;font-size:13px;line-height:1.6}
     .sign-pad{border:1px dashed #9aa7b7;border-radius:6px;background:#fff;width:100%;height:85px;touch-action:none}
-    .small{font-size:12px;color:#64748b}.manager-box{width:52%;margin-left:auto;margin-top:18px;border:1px solid #777}
+    .small{font-size:12px;color:#64748b}.manager-box{width:52%;margin-left:auto;margin-top:10px;border:1px solid #777}
     .manager-box .title{text-align:center;background:#eee;font-weight:700;padding:6px;border-bottom:1px solid #777}
     .manager-grid{display:grid;grid-template-columns:70px 1fr 70px 1fr}.manager-grid div{padding:8px;border-right:1px solid #777}.manager-grid div:nth-child(4){border-right:0}
-    .center{text-align:center}.foot-note{margin-top:14px;text-align:center;font-weight:700}
+    .center{text-align:center}.foot-note{margin-top:8px;text-align:center;font-weight:700}
+
+    .attendees-3 th:nth-child(1),.attendees-3 td:nth-child(1),.attendees-3 th:nth-child(4),.attendees-3 td:nth-child(4),.attendees-3 th:nth-child(7),.attendees-3 td:nth-child(7){width:5%}
+    .attendees-3 th:nth-child(2),.attendees-3 td:nth-child(2),.attendees-3 th:nth-child(5),.attendees-3 td:nth-child(5),.attendees-3 th:nth-child(8),.attendees-3 td:nth-child(8){width:11%}
+    .attendees-3 th:nth-child(3),.attendees-3 td:nth-child(3),.attendees-3 th:nth-child(6),.attendees-3 td:nth-child(6),.attendees-3 th:nth-child(9),.attendees-3 td:nth-child(9){width:17%}
+    .attendees-3 td{height:34px;padding:4px!important;font-size:11px}
+    .attendees-3 th{padding:4px!important;font-size:11px}
+
     .saved-list{max-height:160px;overflow:auto;padding:8px 12px}.saved-item{display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid #e4e8ed;padding:7px 0;font-size:14px}
 
     .calendar-head{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid #e4e8ed}
@@ -60,7 +67,7 @@
     @media(max-width:1100px){.app{grid-template-columns:1fr}#paper{width:100%;min-height:auto}}
     @media print{
       body{background:#fff}header,.form-panel,.preview-title,.toolbar{display:none!important}.app{display:block;margin:0;padding:0}.preview-panel{border:0}.preview-wrap{padding:0;background:#fff}
-      #paper{box-shadow:none;width:210mm;min-height:297mm;margin:0;padding:12mm}@page{size:A4;margin:0}
+      #paper{box-shadow:none;width:210mm;min-height:297mm;margin:0;padding:8mm 10mm}@page{size:A4;margin:0}
     }
   </style>
 </head>
@@ -135,11 +142,8 @@
 <div class="paper-section-title">금주 안전수칙 / 강조사항</div><div class="paper-box" id="pEmphasis"></div>
 <div class="paper-section-title">특이사항 및 건의사항</div><div class="paper-box" id="pMemo"></div>
 <div class="paper-section-title">참석자 명단</div>
-<table class="paper-table" id="pAttendees">
-<tr>
-  <th style="width:8%">No.</th><th style="width:17%">이름</th><th style="width:25%">서명</th>
-  <th style="width:8%">No.</th><th style="width:17%">이름</th><th style="width:25%">서명</th>
-</tr>
+<table class="paper-table attendees-3" id="pAttendees">
+<tr><th>No.</th><th>이름</th><th>서명</th><th>No.</th><th>이름</th><th>서명</th><th>No.</th><th>이름</th><th>서명</th></tr>
 </table>
 <div style="margin-top:14px;text-align:center;font-size:13px">위와 같이 안전교육을 실시하였으며 참석자는 교육내용을 확인하였습니다.</div>
 <div class="manager-box"><div class="title">관리자 확인</div><div class="manager-grid"><div>성명</div><div id="pManagerName"></div><div>서명</div><div><img id="pManagerSign" style="max-width:120px;max-height:45px"></div></div></div>
@@ -257,24 +261,16 @@ loadDefaultEmployees();$('#addAttendee').onclick=()=>{addAttendee();$('#count').
 function getTopics(){return $$('#topicChecks input:checked').map(x=>x.value).join(', ')}
 function update(){$('#pDate').textContent=formatDate($('#date').value);$('#pTime').textContent=`${$('#timeStart').value} ~ ${$('#timeEnd').value}`;$('#pPlace').textContent=$('#place').value;$('#pTarget').textContent=$('#target').value;$('#pCount').textContent=($('#count').value||'0')+'명';$('#pTopics').textContent=getTopics();$('#pContent').textContent=$('#content').value;$('#pEmphasis').textContent=$('#emphasis').value;$('#pMemo').textContent=$('#memo').value;$('#pManagerName').textContent=$('#managerName').value;$('#pManagerSign').src=$('#managerSign').toDataURL('image/png');
 const tbl=$('#pAttendees');
-tbl.innerHTML='<tr><th style="width:8%">No.</th><th style="width:17%">이름</th><th style="width:25%">서명</th><th style="width:8%">No.</th><th style="width:17%">이름</th><th style="width:25%">서명</th></tr>';
-const attendeeData=$$('.attendee-row').map((r,i)=>({
-  no:i+1,
-  name:r.querySelector('.a-name').value,
-  sign:r.querySelector('.a-sign').toDataURL('image/png')
-}));
-const half=Math.ceil(attendeeData.length/2);
-for(let i=0;i<half;i++){
-  const left=attendeeData[i]||{no:'',name:'',sign:''};
-  const right=attendeeData[i+half]||{no:'',name:'',sign:''};
+tbl.innerHTML='<tr><th>No.</th><th>이름</th><th>서명</th><th>No.</th><th>이름</th><th>서명</th><th>No.</th><th>이름</th><th>서명</th></tr>';
+const attendeeData=$$('.attendee-row').map((r,i)=>({no:i+1,name:r.querySelector('.a-name').value,sign:r.querySelector('.a-sign').toDataURL('image/png')}));
+const rowsCount=Math.ceil(attendeeData.length/3);
+for(let i=0;i<rowsCount;i++){
+  const a=attendeeData[i]||{no:'',name:'',sign:''};
+  const b=attendeeData[i+rowsCount]||{no:'',name:'',sign:''};
+  const c=attendeeData[i+rowsCount*2]||{no:'',name:'',sign:''};
   const tr=document.createElement('tr');
-  tr.innerHTML=`
-    <td class="center">${left.no}</td>
-    <td>${left.name}</td>
-    <td class="center">${left.sign?`<img src="${left.sign}" style="max-width:120px;max-height:38px">`:''}</td>
-    <td class="center">${right.no}</td>
-    <td>${right.name}</td>
-    <td class="center">${right.sign?`<img src="${right.sign}" style="max-width:120px;max-height:38px">`:''}</td>`;
+  const sig=x=>x.sign?`<img src="${x.sign}" style="max-width:82px;max-height:28px">`:'';
+  tr.innerHTML=`<td class="center">${a.no}</td><td>${a.name}</td><td class="center">${sig(a)}</td><td class="center">${b.no}</td><td>${b.name}</td><td class="center">${sig(b)}</td><td class="center">${c.no}</td><td>${c.name}</td><td class="center">${sig(c)}</td>`;
   tbl.appendChild(tr);
 }}
 
